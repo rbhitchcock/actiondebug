@@ -30,10 +30,10 @@ module ActionControllerFilterChain
       end
 
       def show_filters_for_self_and_descendents(p = {})
-        [self, list_descendants].flatten.reduce({}) do |h, descendant|
-          h[descendant.name.to_sym] = descendant.send(:action_methods).reduce({}) do |h, action|
+        [self, list_descendants].flatten.reduce({}) do |h, d|
+          h[d.name.to_sym] = d.send(:action_methods, false).reduce({}) do |h, action|
             p[:action] = action.to_sym
-            h[action.to_sym] = filters p
+            h[action.to_sym] = d.send(:filters, p)
             h
           end
           h
@@ -55,6 +55,13 @@ module ActionControllerFilterChain
       def list_descendants
         Rails.application.eager_load! if Rails.env != "production"
         descendants
+      end
+
+      # This is just like action_methods found in the AbstractController class,
+      # but we provide the option to not include inherited methods
+      def action_methods(include_ans = true)
+        methods = super()
+        methods & public_instance_methods(false).map(&:to_s) unless include_ans
       end
 
       private
