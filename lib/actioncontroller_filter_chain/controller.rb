@@ -2,17 +2,16 @@ module ActionControllerFilterChain
   module Controller
     extend ActiveSupport::Concern
 
-    included do
-      class_attribute :filters_for_self, instance_writer: false, instance_reader: false
-    end
-
     module ClassMethods
+      def filters_for_self
+        @filters_for_self ||= _process_action_callbacks
+      end
+
       # With current knowledge of Rails internals, we are going to have to call
       # this method several times when building up a map of the entire
-      # application. Use a class attribute to make it as efficient as possible.
+      # application.
       def filters(p = {})
-        @filters_for_self ||= _process_action_callbacks
-        @filters_for_self.select do |c|
+        filters_for_self.select do |c|
           filter_for_kind?(c, p[:kind]) and filter_runs_for_action?(c, p[:action])
         end.map(&:filter)
       end
@@ -57,6 +56,28 @@ module ActionControllerFilterChain
         descendants
       end
 
+      # FIXME: what about filters with the same name in different controllers?
+      def actions_skipping_filter(filter)
+        raise filter_dne(filter) if !filters_for_self.include?(filter.to_sym)
+        show_filters_for_self_and_descendents.reduce({}) do |h, tuple|
+          h[tuple.first] = tuple.last.keys.select do |action|
+            !tuple.last[action].include?(filter.to_sym)
+          end
+          h
+        end.keep_if { |key, val| !val.empty? }
+      end
+
+      # FIXME: what about filters with the same name in different controllers?
+      def actions_using_filter(filter)
+        raise filter_dne(filter) if !filters_for_self.include?(filter.to_sym)
+        show_filters_for_self_and_descendents.reduce({}) do |h, tuple|
+          h[tuple.first] = tuple.last.keys.select do |action|
+            tuple.last[action].include?(filter.to_sym)
+          end
+          h
+        end.keep_if { |key, val| !val.empty? }
+      end
+
       # This is just like action_methods found in the AbstractController class,
       # but we provide the option to not include inherited methods
       def action_methods(include_ans = true)
@@ -89,6 +110,10 @@ module ActionControllerFilterChain
         # stuff, but try to come up with a better way to do this in the future if
         # possible.
         eval conditions.flatten.join(" && ")
+      end
+
+      def filter_dne(filter)
+        "The filter #{filter} does not exist."
       end
     end
   end
