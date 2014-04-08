@@ -2,9 +2,17 @@ module ActionControllerFilterChain
   module Controller
     extend ActiveSupport::Concern
 
+    included do
+      class_attribute :filters_for_self, instance_writer: false, instance_reader: false
+    end
+
     module ClassMethods
+      # With current knowledge of Rails internals, we are going to have to call
+      # this method several times when building up a map of the entire
+      # application. Use a class attribute to make it as efficient as possible.
       def filters(p = {})
-        _process_action_callbacks.select do |c|
+        @filters_for_self ||= _process_action_callbacks
+        @filters_for_self.select do |c|
           filter_for_kind?(c, p[:kind]) and filter_runs_for_action?(c, p[:action])
         end.map(&:filter)
       end
@@ -22,8 +30,12 @@ module ActionControllerFilterChain
       end
 
       def show_filters_for_self_and_descendents(p = {})
-        list_descendants.reduce({self.name.to_sym => filters(p)}) do |h, descendant|
-          h[descendant.name.to_sym] = descendant.send(:filters, p)
+        [self, list_descendants].flatten.reduce({}) do |h, descendant|
+          h[descendant.name.to_sym] = descendant.send(:action_methods).reduce({}) do |h, action|
+            p[:action] = action.to_sym
+            h[action.to_sym] = filters p
+            h
+          end
           h
         end
       end
