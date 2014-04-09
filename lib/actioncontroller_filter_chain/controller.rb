@@ -11,9 +11,14 @@ module ActionControllerFilterChain
       # this method several times when building up a map of the entire
       # application.
       def filters(p = {})
-        filters_for_self.select do |c|
-          filter_for_kind?(c, p[:kind]) and filter_runs_for_action?(c, p[:action])
-        end.map(&:filter)
+        if p[:action].nil?
+          action_methods(false).reduce({}) do |h, action|
+            h[action.to_sym] = filters_for_action(action, p)
+            h
+          end
+        else
+          {p[:action].to_sym => filters_for_action(p[:action], p)}
+        end
       end
 
       def before_filters(action = nil)
@@ -28,27 +33,23 @@ module ActionControllerFilterChain
         filters kind: :after, action: action
       end
 
-      def show_filters_for_self_and_descendents(p = {})
+      def filters_for_self_and_descendents(p = {})
         [self, list_descendants].flatten.reduce({}) do |h, d|
-          h[d.name.to_sym] = d.send(:action_methods, false).reduce({}) do |h, action|
-            p[:action] = action.to_sym
-            h[action.to_sym] = d.send(:filters, p)
-            h
-          end
+          h[d.name.to_sym] = d.send(:filters, p)
           h
         end
       end
 
-      def show_before_filters_for_self_and_descendents
-        show_filters_for_self_and_descendents({kind: :before})
+      def before_filters_for_self_and_descendents
+        filters_for_self_and_descendents({kind: :before})
       end
 
-      def show_around_filters_for_self_and_descendents(p = {})
-        show_filters_for_self_and_descendents({kind: :around})
+      def around_filters_for_self_and_descendents(p = {})
+        filters_for_self_and_descendents({kind: :around})
       end
 
-      def show_after_filters_for_self_and_descendents
-        show_filters_for_self_and_descendents({kind: :after})
+      def after_filters_for_self_and_descendents
+        filters_for_self_and_descendents({kind: :after})
       end
 
       def list_descendants
@@ -59,7 +60,7 @@ module ActionControllerFilterChain
       # FIXME: what about filters with the same name in different controllers?
       def actions_skipping_filter(filter)
         raise filter_dne(filter) if !filters.include?(filter.to_sym)
-        show_filters_for_self_and_descendents.reduce({}) do |h, tuple|
+        filters_for_self_and_descendents.reduce({}) do |h, tuple|
           h[tuple.first] = tuple.last.keys.select do |action|
             !tuple.last[action].include?(filter.to_sym)
           end
@@ -70,7 +71,7 @@ module ActionControllerFilterChain
       # FIXME: what about filters with the same name in different controllers?
       def actions_using_filter(filter)
         raise filter_dne(filter) if !filters.include?(filter.to_sym)
-        show_filters_for_self_and_descendents.reduce({}) do |h, tuple|
+        filters_for_self_and_descendents.reduce({}) do |h, tuple|
           h[tuple.first] = tuple.last.keys.select do |action|
             tuple.last[action].include?(filter.to_sym)
           end
@@ -110,6 +111,12 @@ module ActionControllerFilterChain
         # stuff, but try to come up with a better way to do this in the future if
         # possible.
         eval conditions.flatten.join(" && ")
+      end
+
+      def filters_for_action(action, p)
+        filters_for_self.select do |c|
+          filter_for_kind?(c, p[:kind]) and filter_runs_for_action?(c, action)
+        end.map(&:filter)
       end
 
       def filter_dne(filter)
