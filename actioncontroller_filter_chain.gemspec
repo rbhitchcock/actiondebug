@@ -8,9 +8,15 @@ Gem::Specification.new do |spec|
   spec.version       = ActionControllerFilterChain::VERSION
   spec.authors       = ["Blake Hitchcock"]
   spec.email         = ["rbhitchcock@gmail.com"]
-  spec.summary       = "Show callbacks for an action"
-  spec.description   = ""
-  spec.homepage      = ""
+  spec.summary       = "A gem to show coverage of before_filters, around_filters, and after_filters for Rails controllers."
+  spec.description   = <<-EOF
+    actioncontroller_filter_chain is a utility that can give you more insight
+    into the structure of your Rails application. It can show all filters that
+    a controller is using, grouped by action. It can also report which actions
+    skip a given filter. Its extendability is essentially endless. Great tool
+    for security researchers and developers alike.
+  EOF
+  spec.homepage      = "https://github.com/rbhitchcock/actioncontroller_filter_chain"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0")
