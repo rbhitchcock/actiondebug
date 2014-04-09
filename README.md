@@ -76,3 +76,25 @@ ApplicationController.actions_skipping_filter(:require_login)
 #      :SessionsController => [:index, :new, :create]
 #    }
 ```
+
+# Installation
+## Using Bundler
+```
+# From https://rubygems.org
+gem 'actioncontroller_filter_chain', '~> 1.0.0'
+
+# From github
+gem 'actioncontroller_filter_chain', '~> 1.0.0', git: "https://github.com/rbhitchcock/actioncontroller_filter_chain"
+```
+
+## Standalone Gem
+```
+gem -v '1.0.0' actioncontroller_filter_chain
+```
+
+## From source
+```
+> git clone https://github.com/rbhitchcock/actioncontroller_filter_chain.git
+> cd actioncontroller_filter_chain
+> rake install
+```
