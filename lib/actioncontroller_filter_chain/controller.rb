@@ -58,7 +58,7 @@ module ActionControllerFilterChain
 
       # FIXME: what about filters with the same name in different controllers?
       def actions_skipping_filter(filter)
-        raise filter_dne(filter) if !filters_for_self.include?(filter.to_sym)
+        raise filter_dne(filter) if !filters.include?(filter.to_sym)
         show_filters_for_self_and_descendents.reduce({}) do |h, tuple|
           h[tuple.first] = tuple.last.keys.select do |action|
             !tuple.last[action].include?(filter.to_sym)
@@ -69,7 +69,7 @@ module ActionControllerFilterChain
 
       # FIXME: what about filters with the same name in different controllers?
       def actions_using_filter(filter)
-        raise filter_dne(filter) if !filters_for_self.include?(filter.to_sym)
+        raise filter_dne(filter) if !filters.include?(filter.to_sym)
         show_filters_for_self_and_descendents.reduce({}) do |h, tuple|
           h[tuple.first] = tuple.last.keys.select do |action|
             tuple.last[action].include?(filter.to_sym)
