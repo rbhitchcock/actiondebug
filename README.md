@@ -1,5 +1,7 @@
-# actioncontroller_filter_chain
-A gem to show coverage of ```before_filter```s, ```around_filter```s, and ```after_filter```s for Rails controllers.
+# actiondebug
+A gem to show which *_filters affect your Rails controllers. Useful for security
+research (which controllers and actions skip an auth check?) and debugging
+development problems (why isn't a method running for a given request?)
 
 # Examples
 ```ruby
@@ -81,20 +83,20 @@ ApplicationController.actions_skipping_filter(:require_login)
 ## Using Bundler
 ```
 # From https://rubygems.org
-gem 'actioncontroller_filter_chain', '~> 1.0.0'
+gem 'actiondebug', '~> 1.0.0'
 
 # From github
-gem 'actioncontroller_filter_chain', '~> 1.0.0', git: "https://github.com/rbhitchcock/actioncontroller_filter_chain"
+gem 'actiondebug', '~> 1.0.0', git: "https://github.com/rbhitchcock/actiondebug"
 ```
 
 ## Standalone Gem
 ```
-gem -v '1.0.0' actioncontroller_filter_chain
+gem -v '1.0.0' actiondebug
 ```
 
 ## From source
 ```
-> git clone https://github.com/rbhitchcock/actioncontroller_filter_chain.git
-> cd actioncontroller_filter_chain
+> git clone https://github.com/rbhitchcock/actiondebug.git
+> cd actiondebug
 > rake install
 ```

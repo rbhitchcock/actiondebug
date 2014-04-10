@@ -1,22 +1,22 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'actioncontroller_filter_chain/version'
+require 'actiondebug/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "actioncontroller_filter_chain"
-  spec.version       = ActionControllerFilterChain::VERSION
+  spec.name          = "actiondebug"
+  spec.version       = ActionDebug::VERSION
   spec.authors       = ["Blake Hitchcock"]
   spec.email         = ["rbhitchcock@gmail.com"]
-  spec.summary       = "A gem to show coverage of before_filters, around_filters, and after_filters for Rails controllers."
+  spec.summary       = "A gem to show which *_filters affect your Rails controllers"
   spec.description   = <<-EOF
-    actioncontroller_filter_chain is a utility that can give you more insight
+    actiondebug is a utility that can give you more insight
     into the structure of your Rails application. It can show all filters that
     a controller is using, grouped by action. It can also report which actions
     skip a given filter. Its extendability is essentially endless. Great tool
     for security researchers and developers alike.
   EOF
-  spec.homepage      = "https://github.com/rbhitchcock/actioncontroller_filter_chain"
+  spec.homepage      = "https://github.com/rbhitchcock/actiondebug"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0")

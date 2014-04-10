@@ -1,4 +1,4 @@
 if defined? Rails
-  require 'actioncontroller_filter_chain/controller'
-  require 'actioncontroller_filter_chain/railtie'
+  require 'actiondebug/controller'
+  require 'actiondebug/railtie'
 end

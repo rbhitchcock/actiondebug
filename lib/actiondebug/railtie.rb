@@ -1,9 +1,9 @@
-module ActionControllerFilterChain
+module ActionDebug
   class Railtie < Rails::Railtie
-    initializer "controller_filter_chain.action_controller" do
+    initializer "actiondebug.action_controller" do
       ActiveSupport.on_load(:action_controller) do
-        puts "Extending #{self} with ActionControllerFilterChain"
-        include ActionControllerFilterChain::Controller
+        puts "Extending #{self} with ActionDebug"
+        include ActionDebug::Controller
       end
     end
   end

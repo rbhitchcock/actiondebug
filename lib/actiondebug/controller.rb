@@ -1,4 +1,4 @@
-module ActionControllerFilterChain
+module ActionDebug
   module Controller
     extend ActiveSupport::Concern
 
