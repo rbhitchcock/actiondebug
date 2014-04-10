@@ -3,10 +3,6 @@ module ActionDebug
     extend ActiveSupport::Concern
 
     module ClassMethods
-      def filters_for_self
-        @filters_for_self ||= _process_action_callbacks
-      end
-
       # With current knowledge of Rails internals, we are going to have to call
       # this method several times when building up a map of the entire
       # application.
@@ -34,8 +30,8 @@ module ActionDebug
       end
 
       def filters_for_self_and_descendants(p = {})
-        [self, list_descendants].flatten.reduce({}) do |h, d|
-          h[d.name.to_sym] = d.send(:filters, p)
+        [self.name.to_sym, symbolized_descendants].flatten.reduce({}) do |h, d|
+          h[d] = safe_instantiate(d).send(:filters, p)
           h
         end
       end
@@ -52,17 +48,19 @@ module ActionDebug
         filters_for_self_and_descendants({kind: :after})
       end
 
-      def list_descendants
-        Rails.application.eager_load! if Rails.env != "production"
-        descendants
-      end
-
       # FIXME: what about filters with the same name in different controllers?
       def actions_skipping_filter(filter)
-        raise filter_dne(filter) if !filters.include?(filter.to_sym)
         filters_for_self_and_descendants.reduce({}) do |h, tuple|
-          h[tuple.first] = tuple.last.keys.select do |action|
-            !tuple.last[action].include?(filter.to_sym)
+          # We want to handle the false positive of someone supplying a filter
+          # that simply does not exist either at all, or for the current
+          # controller being analyzed.
+          if !safe_instantiate(tuple.first).defined_filters.include?(filter)
+            puts "Filter #{filter} is not defined for #{tuple.first.to_s}. Skipping."
+            h[tuple.first] = []
+          else
+            h[tuple.first] = tuple.last.keys.select do |action|
+              !tuple.last[action].include?(filter.to_sym)
+            end
           end
           h
         end.keep_if { |key, val| !val.empty? }
@@ -70,7 +68,6 @@ module ActionDebug
 
       # FIXME: what about filters with the same name in different controllers?
       def actions_using_filter(filter)
-        raise filter_dne(filter) if !filters.include?(filter.to_sym)
         filters_for_self_and_descendants.reduce({}) do |h, tuple|
           h[tuple.first] = tuple.last.keys.select do |action|
             tuple.last[action].include?(filter.to_sym)
@@ -86,7 +83,19 @@ module ActionDebug
         methods & public_instance_methods(false).map(&:to_s) unless include_ans
       end
 
+      def defined_filters
+        @defined_filters ||= filters_for_self.map(&:filter)
+      end
+
       private
+
+      def filters_for_self
+        @filters_for_self ||= _process_action_callbacks
+      end
+
+      def symbolized_descendants
+        @symbolized_descendants ||= symbolize_descendants
+      end
 
       def filter_for_kind?(filter, kind)
         return true if kind.nil?
@@ -119,8 +128,20 @@ module ActionDebug
         end.map(&:filter)
       end
 
-      def filter_dne(filter)
-        "The filter #{filter} does not exist."
+      def safe_instantiate(klass)
+        return self unless is_a_descendant?(klass)
+        klass.to_s.constantize
+      end
+
+      def symbolize_descendants
+        Rails.application.eager_load! if Rails.env != "production"
+        descendants.map do |d|
+          d.name.to_sym
+        end
+      end
+
+      def is_a_descendant?(klass)
+        symbolized_descendants.include?(klass)
       end
     end
   end
