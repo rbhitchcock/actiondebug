@@ -33,23 +33,23 @@ module ActionDebug
         filters kind: :after, action: action
       end
 
-      def filters_for_self_and_descendents(p = {})
+      def filters_for_self_and_descendants(p = {})
         [self, list_descendants].flatten.reduce({}) do |h, d|
           h[d.name.to_sym] = d.send(:filters, p)
           h
         end
       end
 
-      def before_filters_for_self_and_descendents
-        filters_for_self_and_descendents({kind: :before})
+      def before_filters_for_self_and_descendants
+        filters_for_self_and_descendants({kind: :before})
       end
 
-      def around_filters_for_self_and_descendents(p = {})
-        filters_for_self_and_descendents({kind: :around})
+      def around_filters_for_self_and_descendants(p = {})
+        filters_for_self_and_descendants({kind: :around})
       end
 
-      def after_filters_for_self_and_descendents
-        filters_for_self_and_descendents({kind: :after})
+      def after_filters_for_self_and_descendants
+        filters_for_self_and_descendants({kind: :after})
       end
 
       def list_descendants
@@ -60,7 +60,7 @@ module ActionDebug
       # FIXME: what about filters with the same name in different controllers?
       def actions_skipping_filter(filter)
         raise filter_dne(filter) if !filters.include?(filter.to_sym)
-        filters_for_self_and_descendents.reduce({}) do |h, tuple|
+        filters_for_self_and_descendants.reduce({}) do |h, tuple|
           h[tuple.first] = tuple.last.keys.select do |action|
             !tuple.last[action].include?(filter.to_sym)
           end
@@ -71,7 +71,7 @@ module ActionDebug
       # FIXME: what about filters with the same name in different controllers?
       def actions_using_filter(filter)
         raise filter_dne(filter) if !filters.include?(filter.to_sym)
-        filters_for_self_and_descendents.reduce({}) do |h, tuple|
+        filters_for_self_and_descendants.reduce({}) do |h, tuple|
           h[tuple.first] = tuple.last.keys.select do |action|
             tuple.last[action].include?(filter.to_sym)
           end
