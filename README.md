@@ -72,7 +72,7 @@ end
 #    }
 
 ## Show all before filters for a given action
-> SessionsController.before_filters({action: new})
+> SessionsController.before_filters(:new)
 # => {
 #     :new => [:refresh_session, :update_session]
 #    }
