@@ -4,6 +4,8 @@ research (which controllers and actions skip an auth check?) and debugging
 development problems (why isn't a method running for a given request?)
 
 # Examples
+
+### Sample Application
 ```ruby
 class ApplicationController < ActionController::Base
   before_filter :require_login
@@ -44,9 +46,12 @@ class SessionsController < ApplicationController
   def destroy_session
   end
 end
+```
 
+### Commands in Rails Console
+```ruby
 ## Show all actions and filters for controllers which inherit from a controller (including itself)
-ApplicationController.filters_for_self_and_descendants
+> ApplicationController.filters_for_self_and_descendants
 # => {
 #     :ApplicationController => {:index => [:require_login, :refresh_session]},
 #     :SessionsController => {
@@ -58,7 +63,7 @@ ApplicationController.filters_for_self_and_descendants
 #    }
 
 ## Show all filters used by a controller
-SessionsController.filters
+> SessionsController.filters
 # => {
 #      :index => [:refresh_session],
 #      :create => [:refresh_session, :destroy_session],
@@ -67,13 +72,13 @@ SessionsController.filters
 #    }
 
 ## Show all before filters for a given action
-SessionsController.before_filters({action: new})
+> SessionsController.before_filters({action: new})
 # => {
 #     :new => [:refresh_session, :update_session]
 #    }
 
 ## Show all actions which skip a given filter, scoped to self and descendants
-ApplicationController.actions_skipping_filter(:require_login)
+> ApplicationController.actions_skipping_filter(:require_login)
 # => {
 #      :SessionsController => [:index, :new, :create]
 #    }
